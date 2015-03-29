@@ -55,35 +55,6 @@ enum{
 
 static int ftm_mode = MSM_BOOT_MODE__NORMAL;
 
-
-
-int __init  board_mfg_mode_init(void)
-{	
-    char *substr;
-
-    substr = strstr(boot_command_line, "oppo_ftm_mode=");
-    if(substr) {
-        substr += strlen("oppo_ftm_mode=");
-
-        if(strncmp(substr, "factory2", 5) == 0)
-            ftm_mode = MSM_BOOT_MODE__FACTORY;
-        else if(strncmp(substr, "ftmwifi", 5) == 0)
-            ftm_mode = MSM_BOOT_MODE__WLAN;
-		else if(strncmp(substr, "ftmmos", 5) == 0)
-            ftm_mode = MSM_BOOT_MODE__MOS;
-        else if(strncmp(substr, "ftmrf", 5) == 0)
-            ftm_mode = MSM_BOOT_MODE__RF;
-        else if(strncmp(substr, "ftmrecovery", 5) == 0)
-            ftm_mode = MSM_BOOT_MODE__RECOVERY;
-    } 	
-
-	pr_err("board_mfg_mode_init, " "ftm_mode=%d\n", ftm_mode);
-	
-	return 0;
-
-}
-//__setup("oppo_ftm_mode=", board_mfg_mode_init);
-
 int get_boot_mode(void)
 {
 	return ftm_mode;
@@ -147,46 +118,39 @@ static struct attribute_group attr_group = {
 
 #ifdef VENDOR_EDIT
 /* OPPO 2013-09-03 heiwei add for add interface start reason and boot_mode begin */
-char pwron_event[16];
-static int __init start_reason_init(void)
-{
-    int i;
-    char * substr = strstr(boot_command_line, "androidboot.startupmode="); 
-    if(NULL == substr)
-		return 0;
-    substr += strlen("androidboot.startupmode=");
-    for(i=0; substr[i] != ' '; i++) {
-        pwron_event[i] = substr[i];
-    }
-    pwron_event[i] = '\0';
-    
-    printk(KERN_INFO "%s: parse poweron reason %s\n", __func__, pwron_event);
-	
-	return 1;
-}
-//__setup("androidboot.startupmode=", start_reason_setup);
-
-char boot_mode[16];
+static char boot_mode[16];
 static int __init boot_mode_init(void)
 {
-    int i;
-    char *substr = strstr(boot_command_line, "androidboot.mode=");
+	int i;
+	char *substr = strstr(boot_command_line, "androidboot.mode=");
 	
-    if(NULL == substr)
-	return 0;
+	if(NULL == substr)
+		return 0;
 
-    substr += strlen("androidboot.mode=");
+	substr += strlen("androidboot.mode=");
 	
-    for(i=0; substr[i] != ' '; i++) {
-        boot_mode[i] = substr[i];
-    }
-    boot_mode[i] = '\0';
+	for(i=0; substr[i] != ' '; i++) {
+		boot_mode[i] = substr[i];
+	}
+	boot_mode[i] = '\0';
 
-    printk(KERN_INFO "%s: parse boot_mode is %s\n", __func__, boot_mode);
-    return 1;
+	printk(KERN_INFO "%s: parse boot_mode is %s\n", __func__, boot_mode);
+
+	if (!strcmp(boot_mode, "normal"))
+		ftm_mode = MSM_BOOT_MODE__NORMAL;
+	else if (!strcmp(boot_mode, "factory"))
+		ftm_mode = MSM_BOOT_MODE__FACTORY;
+	else if (!strcmp(boot_mode, "recovery"))
+		ftm_mode = MSM_BOOT_MODE__RECOVERY;
+	else if (!strcmp(boot_mode, "charger"))
+		ftm_mode = MSM_BOOT_MODE__CHARGE;
+	else
+		ftm_mode = MSM_BOOT_MODE__NORMAL;
+
+	printk(KERN_INFO "%s: parse ftm_mode is %d\n", __func__, ftm_mode);
+	return 1;
 }
 //__setup("androidboot.mode=", boot_mode_setup);
-/* OPPO 2013-09-03 zhanglong add for add interface start reason and boot_mode end */
 #endif //VENDOR_EDIT
 
 static void __init msm8916_dt_reserve(void)
@@ -237,17 +201,8 @@ static void __init msm8916_init(void)
 	if (socinfo_init() < 0)
 		pr_err("%s: socinfo_init() failed\n", __func__);
 
-#ifdef VENDOR_EDIT		
-	/* OPPO 2013.07.09 hewei add begin for factory mode*/
-	board_mfg_mode_init();
-	/* OPPO 2013.07.09 hewei add end */
-#endif //VENDOR_EDIT
-
 #ifdef VENDOR_EDIT
-/* OPPO 2013-09-03 heiwei add for add interface start reason and boot_mode begin */
-    start_reason_init();
-    boot_mode_init();
-/* OPPO 2013-09-03 zhanglong add for add interface start reason and boot_mode end */
+	boot_mode_init();
 #endif //VENDOR_EDIT
 
 	msm8916_add_drivers();

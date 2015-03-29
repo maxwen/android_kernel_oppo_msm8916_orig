@@ -753,12 +753,12 @@ static void get_vcm_ID(struct msm_sensor_ctrl_t *s_ctrl)
 	}	
 	if(1 == my_vcm_id)
    	{
-   		register_device_proc("r_camera", DEVICE_VERSION_5648_SUNNY, DEVICE_MANUFACUTRE_5648);
+   		//register_device_proc("r_camera", DEVICE_VERSION_5648_SUNNY, DEVICE_MANUFACUTRE_5648);
 		vcm_flag ++;
 	}
 	else if(2 == my_vcm_id)
 	{
-		register_device_proc("r_camera", DEVICE_VERSION_5648_TRULY, DEVICE_MANUFACUTRE_5648);
+		//register_device_proc("r_camera", DEVICE_VERSION_5648_TRULY, DEVICE_MANUFACUTRE_5648);
 		vcm_flag++;
 	}
 }

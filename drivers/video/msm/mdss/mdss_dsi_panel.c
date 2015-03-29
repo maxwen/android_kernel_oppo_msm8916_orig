@@ -152,7 +152,7 @@ static ssize_t attr_mdss_dispswitch(struct device *dev,
 static struct class * mdss_lcd;
 static struct device * dev_lcd;
 static struct device_attribute mdss_lcd_attrs[] = {			
-	__ATTR(dispswitch, S_IRUGO|S_IWUSR, attr_mdss_dispswitch, NULL),	
+	__ATTR(dispswitch, S_IRUGO, attr_mdss_dispswitch, NULL),	
 	__ATTR_NULL,		
 	};
 #endif /*VENDOR_EDIT*/

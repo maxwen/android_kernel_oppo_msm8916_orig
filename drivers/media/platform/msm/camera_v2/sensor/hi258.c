@@ -2203,10 +2203,10 @@ static int32_t hi258_platform_probe(struct platform_device *pdev)
 	const struct of_device_id *match;
 	match = of_match_device(hi258_dt_match, &pdev->dev);
 	rc = msm_sensor_platform_probe(pdev, match->data);
-	if(!rc)
+	/*if(!rc)
 	{
 		register_device_proc("f_camera", DEVICE_VERSION_14027_F, DEVICE_MANUFACUTRE_14027_F);
-	}
+	}*/
 	return rc;
 }
 

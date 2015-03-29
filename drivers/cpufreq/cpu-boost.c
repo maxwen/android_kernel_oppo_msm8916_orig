@@ -45,6 +45,9 @@ static struct workqueue_struct *cpu_boost_wq;
 
 static struct work_struct input_boost_work;
 
+static int cpu_boost_enable(void);
+static int cpu_boost_disable(void);
+
 static unsigned int boost_ms;
 module_param(boost_ms, uint, 0644);
 
@@ -65,6 +68,8 @@ module_param(load_based_syncs, bool, 0644);
 
 static u64 last_input_time;
 #define MIN_INPUT_INTERVAL (150 * USEC_PER_MSEC)
+
+static bool enabled = false;
 
 /*
  * The CPUFREQ_ADJUST notifier is used to override the current policy min to
@@ -365,6 +370,61 @@ static struct input_handler cpuboost_input_handler = {
 	.id_table       = cpuboost_ids,
 };
 
+static int cpu_boost_enable(void)
+{
+	int ret;
+	int cpu;
+	struct cpu_sync *s;
+
+	if (enabled)
+		return ret;
+
+	pr_info("%s\n", __func__);
+	enabled = true;
+
+	for_each_possible_cpu(cpu) {
+		s = &per_cpu(sync_info, cpu);
+		s->thread = kthread_run(boost_mig_sync_thread, (void *)cpu,
+					"boost_sync/%d", cpu);
+		set_cpus_allowed(s->thread, *cpumask_of(cpu));
+	}
+
+	cpufreq_register_notifier(&boost_adjust_nb, CPUFREQ_POLICY_NOTIFIER);
+	atomic_notifier_chain_register(&migration_notifier_head,
+					&boost_migration_nb);
+
+	ret = input_register_handler(&cpuboost_input_handler);
+	if (ret)
+		pr_err("Cannot register cpuboost input handler.\n");
+
+	return ret;
+}
+
+static int cpu_boost_disable(void)
+{
+	int ret;
+	int cpu;
+	struct cpu_sync *s;
+
+	if (!enabled)
+		return ret;
+
+	pr_info("%s\n", __func__);
+	enabled = false;
+
+	for_each_possible_cpu(cpu) {
+		s = &per_cpu(sync_info, cpu);
+		kthread_stop(s->thread);
+	}
+
+	cpufreq_unregister_notifier(&boost_adjust_nb, CPUFREQ_POLICY_NOTIFIER);
+	atomic_notifier_chain_unregister(&migration_notifier_head,
+				&boost_migration_nb);
+	input_unregister_handler(&cpuboost_input_handler);
+
+	return ret;
+}
+
 static int cpu_boost_init(void)
 {
 	int cpu, ret;
@@ -383,14 +443,10 @@ static int cpu_boost_init(void)
 		spin_lock_init(&s->lock);
 		INIT_DELAYED_WORK(&s->boost_rem, do_boost_rem);
 		INIT_DELAYED_WORK(&s->input_boost_rem, do_input_boost_rem);
-		s->thread = kthread_run(boost_mig_sync_thread, (void *)cpu,
-					"boost_sync/%d", cpu);
-		set_cpus_allowed(s->thread, *cpumask_of(cpu));
 	}
-	cpufreq_register_notifier(&boost_adjust_nb, CPUFREQ_POLICY_NOTIFIER);
-	atomic_notifier_chain_register(&migration_notifier_head,
-					&boost_migration_nb);
-	ret = input_register_handler(&cpuboost_input_handler);
+
+	if (input_boost_ms)
+		cpu_boost_enable();
 
 	return 0;
 }

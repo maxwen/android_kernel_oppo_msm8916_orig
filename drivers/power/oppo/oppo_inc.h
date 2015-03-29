@@ -152,11 +152,11 @@
 
 
 #ifdef OPPO_USE_QCOMM
-#undef pr_debug
-#define pr_debug(fmt, ...) printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)	
+//#undef pr_debug
+//#define pr_debug(fmt, ...) printk(KERN_ERR pr_fmt(fmt), ##__VA_ARGS__)	
 
-#undef dev_dbg
-#define dev_dbg(dev, format, arg...) dev_printk(KERN_ERR, dev, format, ##arg)
+//#undef dev_dbg
+//#define dev_dbg(dev, format, arg...) dev_printk(KERN_ERR, dev, format, ##arg)
 
 #ifndef OPCHARGER_DEBUG_ENABLE
 //#define OPCHARGER_DEBUG_ENABLE 

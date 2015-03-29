@@ -262,7 +262,7 @@ static int bq27541_soc_calibrate(struct opchg_bms_charger *di, int soc)
 	if(soc >= 100)
 		soc_calib = 100;
 	di->soc_pre = soc_calib;
-	pr_info("soc:%d, soc_calib:%d\n", soc, soc_calib);
+	pr_debug("soc:%d, soc_calib:%d\n", soc, soc_calib);
 	return soc_calib;
 }
 
