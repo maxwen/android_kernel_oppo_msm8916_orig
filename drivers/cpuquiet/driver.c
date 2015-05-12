@@ -39,7 +39,7 @@ struct cpu_attribute {
 };
 
 static struct cpuquiet_driver *cpuquiet_curr_driver;
-struct cpuquiet_cpu_stat *stats;
+static struct cpuquiet_cpu_stat *stats;
 
 #define CPU_ATTRIBUTE(_name) \
 	static struct cpu_attribute _name ## _attr = {			\
