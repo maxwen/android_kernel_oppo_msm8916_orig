@@ -1,5 +1,5 @@
 ifeq ($(CONFIG_OF),y)
-dtb-$(CONFIG_OPPO_COMMON_SOFT) += msm8916-mtp-14037.dtb
+#dtb-$(CONFIG_OPPO_COMMON_SOFT) += msm8916-mtp-14037.dtb
 endif	
 DTB_NAMES := $(subst $\",,$(CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE_NAMES))
 # DTB_NAMES := msm8916-mtp_14043.dts
